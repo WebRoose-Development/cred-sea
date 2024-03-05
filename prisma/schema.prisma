@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                    Int           @id @default(autoincrement())
+  email                 String        @unique
+  uid                   String        @unique @default(uuid())
+  name                  String?
+  phone                 String?
+  whatsapp              String?
+  role                  Roles         @default(user)
+  referred_by           Referral?     @relation("ReferredBy", fields: [referred_by_id], references: [id])
+  referred_by_id        Int?
+  referred              Referral?     @relation("Referred")
+  created_at            DateTime      @default(now())
+  updated_at            DateTime      @updatedAt
+  is_active             Boolean       @default(true)
+  assigned_applications Application[] @relation("AssignedBy")
+  active_applications   Application[] @relation("ActiveApplication")
+}
+
+model Application {
+  id                 Int      @id @default(autoincrement())
+  logo               String?
+  corporate          User     @relation("AssignedBy", fields: [corporate_uid], references: [uid])
+  corporate_uid      String
+  deal_with          User     @relation("ActiveApplication", fields: [deal_with_uid], references: [uid])
+  deal_with_uid      String
+  application_status Status   @default(active)
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+  product            Product? @relation(fields: [productId], references: [id])
+  productId          Int?
+}
+
+model Product {
+  id               Int           @id @default(autoincrement())
+  product_name     String
+  product_type     ProductTypes  @default(business_loan)
+  corporate_payout Decimal
+  employee_payout  Decimal
+  is_live          Boolean       @default(false)
+  applications     Application[]
+  created_at       DateTime      @default(now())
+  updated_at       DateTime      @updatedAt
+}
+
+enum ProductTypes {
+  business_loan
+  insta_loan
+}
+
+enum Status {
+  active
+  deactive
+  expired
+}
+
+model Referral {
+  id            Int      @id @default(autoincrement())
+  created_by    User     @relation("Referred", fields: [created_by_id], references: [uid])
+  created_by_id String   @unique
+  referred_user User[]   @relation("ReferredBy")
+  referral_link String?
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+}
+
+enum Roles {
+  admin
+  corporate
+  agency
+  user
+}
