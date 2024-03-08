@@ -8,52 +8,91 @@ datasource db {
 }
 
 model User {
-  id                    Int           @id @default(autoincrement())
-  email                 String        @unique
-  uid                   String        @unique @default(uuid())
-  name                  String?
-  phone                 String?
-  whatsapp              String?
-  role                  Roles         @default(user)
-  referred_by           Referral?     @relation("ReferredBy", fields: [referred_by_id], references: [id])
-  referred_by_id        Int?
-  referred              Referral?     @relation("Referred")
-  created_at            DateTime      @default(now())
-  updated_at            DateTime      @updatedAt
-  is_active             Boolean       @default(true)
-  assigned_applications Application[] @relation("AssignedBy")
-  active_applications   Application[] @relation("ActiveApplication")
+  id                  Int           @id @default(autoincrement())
+  email               String        @unique
+  uid                 String        @unique @default(uuid())
+  name                String?
+  phone               String?
+  whatsapp            String?
+  profile_link        String?
+  role                Roles         @default(user)
+  referred_by         User?         @relation("ReferredBy", fields: [referred_by_uid], references: [uid])
+  referred_by_uid     String?
+  created_at          DateTime      @default(now())
+  updated_at          DateTime      @updatedAt
+  is_active           Boolean       @default(true)
+  active_applications Application[] @relation("ActiveApplication")
+  alloted_sms         Application[] @relation("AllotedSM")
+  original_products   Product[]     @relation("Original")
+  imported_products   Product[]     @relation("Imported")
+  referred            User[]        @relation("ReferredBy")
 }
 
 model Application {
-  id                 Int      @id @default(autoincrement())
-  logo               String?
-  corporate          User     @relation("AssignedBy", fields: [corporate_uid], references: [uid])
-  corporate_uid      String
-  deal_with          User     @relation("ActiveApplication", fields: [deal_with_uid], references: [uid])
-  deal_with_uid      String
-  application_status Status   @default(active)
-  created_at         DateTime @default(now())
-  updated_at         DateTime @updatedAt
-  product            Product? @relation(fields: [productId], references: [id])
-  productId          Int?
+  id                 Int               @id @default(autoincrement())
+  application_status ApplicationStatus @default(active)
+  created_at         DateTime          @default(now())
+  updated_at         DateTime          @updatedAt
+  product            Product           @relation(fields: [productId], references: [id])
+  productId          Int
+  customer           Customer?
+  added_by           User              @relation("ActiveApplication", fields: [added_by_user_uid], references: [uid])
+  added_by_user_uid  String
+  alloted_sm         User?             @relation("AllotedSM", fields: [sm_user_id], references: [uid])
+  sm_user_id         String?
+  timelines          Timeline[]
+}
+
+model Timeline {
+  id            Int                @id @default(autoincrement())
+  Application   Application        @relation(fields: [applicationId], references: [id])
+  applicationId Int
+  created_at    DateTime           @default(now())
+  notes         String?
+  loan_id       String?
+  amount        BigInt?
+  stage         ApplicationStatus?
+}
+
+model Customer {
+  application   Application @relation(fields: [applicationId], references: [id])
+  applicationId Int         @unique
+  name          String?
+  phone         String?
+  email         String?
+  pincode       String
+
+  @@id([applicationId])
 }
 
 model Product {
-  id               Int           @id @default(autoincrement())
-  product_name     String
-  product_type     ProductTypes  @default(business_loan)
-  corporate_payout Decimal
-  employee_payout  Decimal
-  is_live          Boolean       @default(false)
-  applications     Application[]
-  created_at       DateTime      @default(now())
-  updated_at       DateTime      @updatedAt
+  id                Int           @id @default(autoincrement())
+  product_name      String
+  logo              String?
+  product_link      String
+  product_type      ProductTypes  @default(business_loan)
+  product_status    Status        @default(active)
+  payout            Decimal
+  imported_payout   Decimal?
+  employee_payout   Decimal?
+  is_live           Boolean       @default(false)
+  created_at        DateTime      @default(now())
+  updated_at        DateTime      @updatedAt
+  product_owner     User          @relation("Original", fields: [product_owner_uid], references: [uid])
+  product_owner_uid String
+  imported_by_users User[]        @relation("Imported")
+  applications      Application[]
 }
 
 enum ProductTypes {
   business_loan
   insta_loan
+}
+
+enum ApplicationStatus {
+  active
+  deactive
+  expired
 }
 
 enum Status {
@@ -62,19 +101,9 @@ enum Status {
   expired
 }
 
-model Referral {
-  id            Int      @id @default(autoincrement())
-  created_by    User     @relation("Referred", fields: [created_by_id], references: [uid])
-  created_by_id String   @unique
-  referred_user User[]   @relation("ReferredBy")
-  referral_link String?
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
-}
-
 enum Roles {
   admin
   corporate
   agency
-  user
+  user // agents
 }

@@ -1,27 +1,34 @@
 import prisma from "./script";
 
-async function createUser(name, email, phone) {
+async function createUser(name, email, phone,
+    referred_by_uid) {
 
     return await prisma.user.create({
         data: {
-            name: name,
+            name,
             email,
-            phone
-        }
-    });
-
-}
-async function getUserByUid({ uid, }) {
-
-    return await prisma.user.findFirst({
-        where: {
-            uid
+            phone,
+            referred_by_uid
         },
         include: {
-            assigned_applications: true,
+            referred_by: true
+        }
+    });
+}
+
+
+async function getUserByUid({ uid }) {
+
+    return await prisma.user.findUnique({
+        where: {
+            uid: uid
+        },
+        include: {
             active_applications: true,
             referred: true,
             referred_by: true,
+            original_products: true,
+            imported_products: true,
         }
     });
 
@@ -29,15 +36,16 @@ async function getUserByUid({ uid, }) {
 
 async function getUserById(id) {
 
-    return await prisma.user.findFirst({
+    return await prisma.user.findUnique({
         where: {
             id: Number(id)
         },
         include: {
-            assigned_applications: true,
             active_applications: true,
             referred: true,
             referred_by: true,
+            original_products: true,
+            imported_products: true,
         }
     });
 }
@@ -48,6 +56,39 @@ async function createNewApplication({ corporate_uid, deal_with_uid }) {
         data: {
             corporate_uid: corporate_uid,
             deal_with_uid: deal_with_uid
+        }
+    });
+}
+
+async function createNewProduct({ product_name, product_link, logo, payout, imported_payout, employee_payout, product_owner_uid }) {
+
+    return await prisma.product.create({
+        data: {
+            product_name,
+            product_link,
+            logo,
+            payout,
+            product_owner_uid,
+            employee_payout,
+            imported_payout,
+            is_live: true
+        },
+        include: {
+            product_owner: true,
+        }
+    });
+}
+
+async function getProductById(id) {
+
+    return await prisma.product.findUnique({
+        where: {
+            id: Number(id)
+        },
+        include: {
+            imported_by_users: true,
+            product_owner: true,
+            applications: true,
         }
     });
 }
@@ -81,4 +122,4 @@ async function getActiveApplications(uid) {
 
 
 
-export { createUser, getUserById, getUserByUid, createNewApplication, getActiveApplications, getAssignedApplications }
+export { createUser, getUserById, getUserByUid, createNewApplication, getActiveApplications, getAssignedApplications, createNewProduct, getProductById }
