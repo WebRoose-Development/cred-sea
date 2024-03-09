@@ -1,3 +1,4 @@
+import { json } from "@sveltejs/kit";
 import prisma from "./script";
 
 async function createUser(name, email, phone,
@@ -78,6 +79,38 @@ async function createNewProduct({ product_name, product_link, logo, payout, impo
         }
     });
 }
+async function importProductsToUser({ product_owner_uid, product_importer_uid }) {
+
+
+    const productOwner = await getUserByUid({ uid: product_owner_uid });
+    const productImporter = await getUserByUid({ uid: product_importer_uid });
+
+    if (productOwner && productImporter) {
+
+        const userUpdate = await prisma.user.update({
+            where: {
+                uid: product_importer_uid
+            },
+            data: {
+                imported_products: { set: productOwner.original_products },
+            },
+            include: {
+                referred_by: true,
+                original_products: true,
+                imported_products: true,
+            }
+        });
+
+        return userUpdate;
+    } else if (productOwner == null) {
+        return `could not find the ${product_owner_uid} user`;
+    } else if (productImporter == null) {
+        return `could not find the ${product_importer_uid} user`;
+    } else {
+        return `could not find the user`;
+    }
+
+}
 
 async function getProductById(id) {
 
@@ -122,4 +155,4 @@ async function getActiveApplications(uid) {
 
 
 
-export { createUser, getUserById, getUserByUid, createNewApplication, getActiveApplications, getAssignedApplications, createNewProduct, getProductById }
+export { createUser, getUserById, getUserByUid, createNewApplication, getActiveApplications, getAssignedApplications, createNewProduct, getProductById, importProductsToUser }

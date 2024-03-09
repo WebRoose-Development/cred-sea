@@ -39,4 +39,7 @@ export async function GET({ url }) {
         const user = await getProductById(id);
         return new json(user);
     }
+
+    return new json({ error: "id required in query param" });
+
 }
