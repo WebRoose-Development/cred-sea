@@ -31,11 +31,10 @@ async function getUserByUid({ uid }) {
             uid: uid
         },
         include: {
-            active_applications: true,
-            referred: true,
-            referred_by: true,
-            original_products: true,
-            imported_products: true,
+            corporate: true,
+            advisor: true,
+            agent: true,
+            sm: true
         }
     });
 
@@ -48,11 +47,10 @@ async function getUserById(id) {
             id: Number(id)
         },
         include: {
-            active_applications: true,
-            referred: true,
-            referred_by: true,
-            original_products: true,
-            imported_products: true,
+            corporate: true,
+            advisor: true,
+            agent: true,
+            sm: true
         }
     });
 }
