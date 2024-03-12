@@ -26,8 +26,8 @@ model User {
 }
 
 model Corporate {
-  user           User      @relation(fields: [userId], references: [uid])
-  userId         String    @unique
+  user           User      @relation(fields: [corporateId], references: [uid])
+  corporateId    String    @unique
   corporate_name String
   corporate_logo String?
   created_at     DateTime  @default(now())
@@ -37,13 +37,13 @@ model Corporate {
   sms            SM[]
   products       Product[]
 
-  @@id([userId])
+  @@id([corporateId])
 }
 
 model Advisor {
   user            User      @relation(fields: [userId], references: [uid])
   userId          String    @unique
-  corporate       Corporate @relation(fields: [corporateUserId], references: [userId])
+  corporate       Corporate @relation(fields: [corporateUserId], references: [corporateId])
   corporateUserId String
   advisor_name    String
   created_at      DateTime  @default(now())
@@ -56,7 +56,7 @@ model Advisor {
 model Agent {
   user            User      @relation(fields: [userId], references: [uid])
   userId          String    @unique
-  corporate       Corporate @relation(fields: [corporateUserId], references: [userId])
+  corporate       Corporate @relation(fields: [corporateUserId], references: [corporateId])
   corporateUserId String
   advisor         Advisor   @relation(fields: [advisorUserId], references: [userId])
   advisorUserId   String
@@ -70,7 +70,7 @@ model Agent {
 model SM {
   user            User      @relation(fields: [userId], references: [uid])
   userId          String    @unique
-  corporate       Corporate @relation(fields: [corporateUserId], references: [userId])
+  corporate       Corporate @relation(fields: [corporateUserId], references: [corporateId])
   corporateUserId String
 
   @@id([userId])
@@ -121,7 +121,7 @@ model Product {
   created_at      DateTime      @default(now())
   updated_at      DateTime      @updatedAt
   applications    Application[]
-  corporate       Corporate     @relation(fields: [corporateUserId], references: [userId])
+  corporate       Corporate     @relation(fields: [corporateUserId], references: [corporateId])
   corporateUserId String
 }
 

@@ -1,18 +1,24 @@
 import { json } from "@sveltejs/kit";
 import prisma from "./script";
 
-async function createUser(name, email, phone,
-    referred_by_uid) {
+async function createUser({ name, email, phone, corporate_name, corporate_logo }) {
 
     return await prisma.user.create({
         data: {
             name,
             email,
             phone,
-            referred_by_uid
+            corporate: {
+                // create and add corporate
+                create: {
+                    corporate_name,
+                    corporate_logo
+                }
+            }
         },
         include: {
-            referred_by: true
+            // return corporate along with response
+            corporate: true
         }
     });
 }
