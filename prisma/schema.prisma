@@ -8,24 +8,72 @@ datasource db {
 }
 
 model User {
-  id                  Int           @id @default(autoincrement())
-  email               String        @unique
-  uid                 String        @unique @default(uuid())
-  name                String?
-  phone               String?
-  whatsapp            String?
-  profile_link        String?
-  role                Roles         @default(user)
-  referred_by         User?         @relation("ReferredBy", fields: [referred_by_uid], references: [uid])
-  referred_by_uid     String?
-  created_at          DateTime      @default(now())
-  updated_at          DateTime      @updatedAt
-  is_active           Boolean       @default(true)
-  active_applications Application[] @relation("ActiveApplication")
-  alloted_sms         Application[] @relation("AllotedSM")
-  original_products   Product[]     @relation("Original")
-  imported_products   Product[]     @relation("Imported")
-  referred            User[]        @relation("ReferredBy")
+  id           Int        @id @default(autoincrement())
+  email        String     @unique
+  uid          String     @unique @default(uuid())
+  name         String?
+  phone        String?
+  whatsapp     String?
+  profile_link String?
+  role         Roles      @default(corporate)
+  created_at   DateTime   @default(now())
+  updated_at   DateTime   @updatedAt
+  is_active    Boolean    @default(true)
+  corporate    Corporate?
+  advisor      Advisor?
+  agent        Agent?
+  sm           SM?
+}
+
+model Corporate {
+  user           User      @relation(fields: [userId], references: [uid])
+  userId         String    @unique
+  corporate_name String
+  corporate_logo String?
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
+  advisors       Advisor[]
+  agents         Agent[]
+  sms            SM[]
+  products       Product[]
+
+  @@id([userId])
+}
+
+model Advisor {
+  user            User      @relation(fields: [userId], references: [uid])
+  userId          String    @unique
+  corporate       Corporate @relation(fields: [corporateUserId], references: [userId])
+  corporateUserId String
+  advisor_name    String
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+  agents          Agent[]
+
+  @@id([userId])
+}
+
+model Agent {
+  user            User      @relation(fields: [userId], references: [uid])
+  userId          String    @unique
+  corporate       Corporate @relation(fields: [corporateUserId], references: [userId])
+  corporateUserId String
+  advisor         Advisor   @relation(fields: [advisorUserId], references: [userId])
+  advisorUserId   String
+  agent_name      String
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+
+  @@id([userId])
+}
+
+model SM {
+  user            User      @relation(fields: [userId], references: [uid])
+  userId          String    @unique
+  corporate       Corporate @relation(fields: [corporateUserId], references: [userId])
+  corporateUserId String
+
+  @@id([userId])
 }
 
 model Application {
@@ -35,11 +83,8 @@ model Application {
   updated_at         DateTime          @updatedAt
   product            Product           @relation(fields: [productId], references: [id])
   productId          Int
-  customer           Customer?
-  added_by           User              @relation("ActiveApplication", fields: [added_by_user_uid], references: [uid])
-  added_by_user_uid  String
-  alloted_sm         User?             @relation("AllotedSM", fields: [sm_user_id], references: [uid])
-  sm_user_id         String?
+  customer           Customer          @relation(fields: [customerId], references: [id])
+  customerId         Int
   timelines          Timeline[]
 }
 
@@ -55,33 +100,29 @@ model Timeline {
 }
 
 model Customer {
-  application   Application @relation(fields: [applicationId], references: [id])
-  applicationId Int         @unique
-  name          String?
-  phone         String?
-  email         String?
-  pincode       String
-
-  @@id([applicationId])
+  id          Int           @id @default(autoincrement())
+  application Application[]
+  name        String?
+  pan         String        @unique
+  phone       String
+  email       String?
+  pincode     String
 }
 
 model Product {
-  id                Int           @id @default(autoincrement())
-  product_name      String
-  logo              String?
-  product_link      String
-  product_type      ProductTypes  @default(business_loan)
-  product_status    Status        @default(active)
-  payout            Decimal
-  imported_payout   Decimal?
-  employee_payout   Decimal?
-  is_live           Boolean       @default(false)
-  created_at        DateTime      @default(now())
-  updated_at        DateTime      @updatedAt
-  product_owner     User          @relation("Original", fields: [product_owner_uid], references: [uid])
-  product_owner_uid String
-  imported_by_users User[]        @relation("Imported")
-  applications      Application[]
+  id              Int           @id @default(autoincrement())
+  product_name    String
+  logo            String?
+  product_link    String
+  product_type    ProductTypes  @default(business_loan)
+  product_status  Status        @default(active)
+  payout          Decimal
+  is_live         Boolean       @default(false)
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
+  applications    Application[]
+  corporate       Corporate     @relation(fields: [corporateUserId], references: [userId])
+  corporateUserId String
 }
 
 enum ProductTypes {
@@ -90,6 +131,7 @@ enum ProductTypes {
 }
 
 enum ApplicationStatus {
+  // todo
   active
   deactive
   expired
@@ -102,8 +144,9 @@ enum Status {
 }
 
 enum Roles {
-  admin
+  credsea
   corporate
   agency
-  user // agents
+  agents // agents
+  sm
 }
