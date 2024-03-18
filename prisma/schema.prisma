@@ -8,61 +8,67 @@ datasource db {
 }
 
 model User {
-  id           Int        @id @default(autoincrement())
-  email        String     @unique
-  uid          String     @unique @default(uuid())
-  name         String?
-  phone        String?
-  whatsapp     String?
-  profile_link String?
-  role         Roles      @default(corporate)
-  created_at   DateTime   @default(now())
-  updated_at   DateTime   @updatedAt
-  is_active    Boolean    @default(true)
-  corporate    Corporate?
-  advisor      Advisor?
-  agent        Agent?
-  sm           SM?
+  email               String     @unique
+  uid                 String     @id @unique
+  name                String?
+  phone               String?
+  whatsapp            String?
+  profile_link        String?
+  role                Roles      @default(corporate)
+  created_at          DateTime   @default(now())
+  updated_at          DateTime   @updatedAt
+  is_active           Boolean    @default(true)
+  created_by          User?      @relation("Created", fields: [created_by_user_uid], references: [uid])
+  created_by_user_uid String?
+  corporate           Corporate?
+  advisor             Advisor?
+  agent               Agent?
+  sm                  SM?
+  createdUsers        User[]     @relation("Created")
 }
 
 model Corporate {
-  user           User      @relation(fields: [corporateId], references: [uid])
-  corporateId    String    @unique
+  user           User          @relation(fields: [corporateId], references: [uid])
+  corporateId    String        @unique
   corporate_name String
   corporate_logo String?
-  created_at     DateTime  @default(now())
-  updated_at     DateTime  @updatedAt
+  created_at     DateTime      @default(now())
+  updated_at     DateTime      @updatedAt
   advisors       Advisor[]
   agents         Agent[]
   sms            SM[]
   products       Product[]
+  Application    Application[]
 
   @@id([corporateId])
 }
 
 model Advisor {
-  user            User      @relation(fields: [userId], references: [uid])
-  userId          String    @unique
-  corporate       Corporate @relation(fields: [corporateUserId], references: [corporateId])
+  user            User            @relation(fields: [userId], references: [uid])
+  userId          String          @unique
+  corporate       Corporate       @relation(fields: [corporateUserId], references: [corporateId])
   corporateUserId String
   advisor_name    String
-  created_at      DateTime  @default(now())
-  updated_at      DateTime  @updatedAt
+  created_at      DateTime        @default(now())
+  updated_at      DateTime        @updatedAt
   agents          Agent[]
+  productPayouts  ProductPayout[]
+  Application     Application[]
 
   @@id([userId])
 }
 
 model Agent {
-  user            User      @relation(fields: [userId], references: [uid])
-  userId          String    @unique
-  corporate       Corporate @relation(fields: [corporateUserId], references: [corporateId])
+  user            User          @relation(fields: [userId], references: [uid])
+  userId          String        @unique
+  corporate       Corporate     @relation(fields: [corporateUserId], references: [corporateId])
   corporateUserId String
-  advisor         Advisor   @relation(fields: [advisorUserId], references: [userId])
+  advisor         Advisor       @relation(fields: [advisorUserId], references: [userId])
   advisorUserId   String
   agent_name      String
-  created_at      DateTime  @default(now())
-  updated_at      DateTime  @updatedAt
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
+  Application     Application[]
 
   @@id([userId])
 }
@@ -77,15 +83,21 @@ model SM {
 }
 
 model Application {
-  id                 Int               @id @default(autoincrement())
-  application_status ApplicationStatus @default(active)
-  created_at         DateTime          @default(now())
-  updated_at         DateTime          @updatedAt
-  product            Product           @relation(fields: [productId], references: [id])
-  productId          Int
-  customer           Customer          @relation(fields: [customerId], references: [id])
-  customerId         Int
-  timelines          Timeline[]
+  id                   Int               @id @default(autoincrement())
+  application_status   ApplicationStatus @default(active)
+  created_at           DateTime          @default(now())
+  updated_at           DateTime          @updatedAt
+  product              Product           @relation(fields: [productId], references: [id])
+  productId            Int
+  customer             Customer          @relation(fields: [customerId], references: [id])
+  customerId           Int
+  advisor              Advisor           @relation(fields: [advisorUserId], references: [userId])
+  advisorUserId        String
+  agent                Agent             @relation(fields: [agentUserId], references: [userId])
+  agentUserId          String
+  corporate            Corporate         @relation(fields: [corporateCorporateId], references: [corporateId])
+  corporateCorporateId String
+  timelines            Timeline[]
 }
 
 model Timeline {
@@ -104,25 +116,36 @@ model Customer {
   application Application[]
   name        String?
   pan         String        @unique
+  aadhar      String        @unique
   phone       String
   email       String?
   pincode     String
 }
 
 model Product {
-  id              Int           @id @default(autoincrement())
+  id              Int             @id @default(autoincrement())
   product_name    String
   logo            String?
   product_link    String
-  product_type    ProductTypes  @default(business_loan)
-  product_status  Status        @default(active)
+  product_type    ProductTypes    @default(business_loan)
+  product_status  Status          @default(active)
+  is_live         Boolean         @default(false)
   payout          Decimal
-  is_live         Boolean       @default(false)
-  created_at      DateTime      @default(now())
-  updated_at      DateTime      @updatedAt
   applications    Application[]
-  corporate       Corporate     @relation(fields: [corporateUserId], references: [corporateId])
+  corporate       Corporate       @relation(fields: [corporateUserId], references: [corporateId])
   corporateUserId String
+  created_at      DateTime        @default(now())
+  updated_at      DateTime        @updatedAt
+  productPayouts  ProductPayout[]
+}
+
+model ProductPayout {
+  id            Int     @id @default(autoincrement())
+  product       Product @relation(fields: [productId], references: [id])
+  productId     Int
+  advisor       Advisor @relation(fields: [advisorUserId], references: [userId])
+  advisorUserId String
+  productPayout Decimal
 }
 
 enum ProductTypes {
