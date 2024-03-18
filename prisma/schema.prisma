@@ -38,7 +38,7 @@ model Corporate {
   agents         Agent[]
   sms            SM[]
   products       Product[]
-  Application    Application[]
+  application    Application[]
 
   @@id([corporateId])
 }
@@ -53,7 +53,7 @@ model Advisor {
   updated_at      DateTime        @updatedAt
   agents          Agent[]
   productPayouts  ProductPayout[]
-  Application     Application[]
+  application     Application[]
 
   @@id([userId])
 }
@@ -68,7 +68,7 @@ model Agent {
   agent_name      String
   created_at      DateTime      @default(now())
   updated_at      DateTime      @updatedAt
-  Application     Application[]
+  applications    Application[]
 
   @@id([userId])
 }
