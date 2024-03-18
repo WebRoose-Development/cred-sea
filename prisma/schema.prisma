@@ -109,6 +109,7 @@ model Customer {
   pincode     String
 }
 
+
 model Product {
   id              Int           @id @default(autoincrement())
   product_name    String

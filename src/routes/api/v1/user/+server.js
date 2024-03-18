@@ -1,47 +1,47 @@
 import { json } from '@sveltejs/kit';
-
 import { createUser, getUserById, getUserByUid } from '../../../../../db.js';
-import prisma from '../../../../../script.js';
 
-export async function POST({ request }) {
+export async function POST(request) {
+    try {
+        const { name, email, phone, corporate_name, corporate_logo } = await request.json();
 
-    let { name, email, phone, corporate_name, corporate_logo } = await request.json();
+        if (!email) {
+            return json({ error: "email is required" });
+        }
 
-    if (!email) {
-        return new json({ error: "email is required" });
+        if (!name) {
+            return json({ error: "name is required" });
+        }
+
+        if (!corporate_name) {
+            return json({ error: "corporate_name is required" });
+        }
+
+        const user = await createUser({ name, email, phone, corporate_name, corporate_logo });
+
+        return json(user);
+    } catch (error) {
+        console.error("Error creating user:", error);
+        return json({ error: "Failed to create user" });
     }
-
-    if (!name) {
-        return new json({ error: "name is required" });
-    }
-    if (!corporate_name) {
-        return new json({ error: "corporate_name is required" });
-    }
-
-    const user = await createUser({ name, email, phone, corporate_name, corporate_logo });
-
-    return new json(user);
 }
 
+export async function GET({ params }) {
+    const { uid, id } = params;
 
-export async function GET({ url }) {
-
-    const uid = url.searchParams.get("uid");
-    const id = url.searchParams.get("id");
     if (uid) {
         const user = await getUserByUid({ uid });
-        return new json(user);
+        return json(user);
     }
 
     if (id) {
-        if (!Number(id)) {
-            return new json({ error: "id is a number in query param" });
+        if (isNaN(id)) {
+            return json({ error: "id should be a number in query param" });
         }
-        const user = await getUserById(id);
-        return new json(user);
+
+        const user = await getUserById(parseInt(id));
+        return json(user);
     }
 
-    return new json({ error: "uid is required as query param" });
-
-
+    return json({ error: "uid or id is required as query param" });
 }

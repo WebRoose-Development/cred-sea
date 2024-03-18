@@ -1,5 +1,6 @@
 import { json } from "@sveltejs/kit";
 import prisma from "./script";
+import { flip } from "svelte/animate";
 
 async function createUser({ name, email, phone, corporate_name, corporate_logo }) {
 
@@ -50,7 +51,7 @@ async function getUserById(id) {
             corporate: true,
             advisor: true,
             agent: true,
-            sm: true
+            SM: true
         }
     });
 }
@@ -65,17 +66,14 @@ async function createNewApplication({ corporate_uid, deal_with_uid }) {
     });
 }
 
-async function createNewProduct({ product_name, product_link, logo, payout, imported_payout, employee_payout, product_owner_uid }) {
+async function createNewProduct({ product_name, product_link, logo, payout, corporateUserId }) {
 
     return await prisma.product.create({
         data: {
-            product_name,
-            product_link,
-            logo,
-            payout,
-            product_owner_uid,
-            employee_payout,
-            imported_payout,
+            product_name, 
+            product_link, 
+            logo, payout, 
+            corporateUserId,
             is_live: true
         },
         include: {
@@ -154,9 +152,50 @@ async function getActiveApplications(uid) {
     });
 }
 
+async function createCorporate({user, corporateId, corporate_name, corporate_logo }) {
+    return await prisma.corporate.create({
+        data: {
+            // userid,
+            corporate_name,
+            corporate_logo
+        }
+    });
+}
+
+async function getCorporateById(corporateId, includeRelatedEntities = false) {
+    let corporateDetails = await prisma.corporate.findUnique({
+        where: {
+            corporateId
+        },
+        include: includeRelatedEntities ? {
+            user: true,
+            advisors: true,
+            agents: true,
+            sms: true,
+            products: true
+        }: {}
+    });
+    return corporateDetails;
+};
+
+//  corporate objects
+const Corporate = {
+    user: ({ corporateId }) => prisma.user.findUnique({where: { corporateId }}),
+    corporateId: true,
+    corporate_name: true,
+    corporate_logo: true,
+    created_at: true,
+    updated_at: true,
+    advisors: true,
+    agents: true,
+    sms: true,
+    products: true
+
+};
 
 
 
 
 
-export { createUser, getUserById, getUserByUid, createNewApplication, getActiveApplications, getAssignedApplications, createNewProduct, getProductById, importProductsToUser }
+
+export { createUser, getUserById, getUserByUid, createNewApplication, getActiveApplications, getAssignedApplications, createNewProduct, getProductById, importProductsToUser, createCorporate, getCorporateById, Corporate }
