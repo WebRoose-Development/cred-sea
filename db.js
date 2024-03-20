@@ -55,12 +55,34 @@ async function getUserById(id) {
     });
 }
 
-async function createNewApplication({ corporate_uid, deal_with_uid }) {
+async function createNewApplication({ productId,
+    customerId,
+    advisorUserId,
+    agentUserId,
+    corporateCorporateId  }) {
 
     return await prisma.application.create({
         data: {
-            corporate_uid: corporate_uid,
-            deal_with_uid: deal_with_uid
+            productId,
+        customer:{
+            create:
+            {
+                pan,
+                aadhar,
+                phone,
+                pincode
+            }
+        },
+        advisorUserId,
+        agentUserId,
+        corporateCorporateId 
+        },
+        include:{
+            product:true,
+            customer:true,
+            advisor :true,
+            agent:true,
+            corporate:true,
         }
     });
 }

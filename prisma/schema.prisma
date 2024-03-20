@@ -82,9 +82,9 @@ model SM {
   @@id([userId])
 }
 
-model Application {
+model Application { // create update get delete
   id                   Int               @id @default(autoincrement())
-  application_status   ApplicationStatus @default(active)
+  application_status   ApplicationStages @default(fresh_application)
   created_at           DateTime          @default(now())
   updated_at           DateTime          @updatedAt
   product              Product           @relation(fields: [productId], references: [id])
@@ -100,7 +100,7 @@ model Application {
   timelines            Timeline[]
 }
 
-model Timeline {
+model Timeline { // create get
   id            Int                @id @default(autoincrement())
   Application   Application        @relation(fields: [applicationId], references: [id])
   applicationId Int
@@ -108,10 +108,10 @@ model Timeline {
   notes         String?
   loan_id       String?
   amount        BigInt?
-  stage         ApplicationStatus?
+  stage         ApplicationStages?
 }
 
-model Customer {
+model Customer {// create update get delete
   id          Int           @id @default(autoincrement())
   application Application[]
   name        String?
@@ -148,16 +148,43 @@ model ProductPayout {
   productPayout Decimal
 }
 
-enum ProductTypes {
+enum ProductTypes { // todo now
+  personal_loan
   business_loan
+  credit_card
   insta_loan
+  home_loan
+  gold_loan
+  loan_against_property
+  bank_account_opening
+  vehicle_loan
+  emi_cards
+  cc_od_loan
+  gst_based_loan
+  government_loan
+  channel_financing
+  bill_discounting
+  machinery_loan
+  exported_loan
+  school_college_loan
+  hotel_loan
+  hospital_loan
+  tea_garden_loan
+  rice_mill_loan
+  education_loan
+
 }
 
-enum ApplicationStatus {
-  // todo
-  active
-  deactive
-  expired
+enum ApplicationStages {
+  // todo now
+  fresh_application
+  approved_application
+  in_progress_application
+  documents_pending
+  under_credit_review
+  sales_complete
+  rejected_application
+  closed_application
 }
 
 enum Status {
