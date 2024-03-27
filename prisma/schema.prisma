@@ -18,7 +18,7 @@ model User {
   created_at          DateTime   @default(now())
   updated_at          DateTime   @updatedAt
   is_active           Boolean    @default(true)
-  created_by          User?      @relation("Created", fields: [created_by_user_uid], references: [uid])
+  created_by          User?      @relation("Created", fields: [created_by_user_uid], references: [uid],onDelete: Cascade) //delete opetions
   created_by_user_uid String?
   corporate           Corporate?
   advisor             Advisor?
@@ -52,7 +52,7 @@ model Advisor {
   created_at      DateTime        @default(now())
   updated_at      DateTime        @updatedAt
   agents          Agent[]
-  productPayouts  ProductPayout[]
+  productPayouts  ProductPayout[] 
   application     Application[]
 
   @@id([userId])
@@ -87,15 +87,15 @@ model Application { // create update get delete
   application_status   ApplicationStages @default(fresh_application)
   created_at           DateTime          @default(now())
   updated_at           DateTime          @updatedAt
-  product              Product           @relation(fields: [productId], references: [id])
+  product              Product           @relation(fields: [productId], references: [id],onDelete: Cascade) // delete function
   productId            Int
-  customer             Customer          @relation(fields: [customerId], references: [id])
+  customer             Customer          @relation(fields: [customerId], references: [id],onDelete: Cascade)
   customerId           Int
   advisor              Advisor           @relation(fields: [advisorUserId], references: [userId])
   advisorUserId        String
   agent                Agent             @relation(fields: [agentUserId], references: [userId])
   agentUserId          String
-  corporate            Corporate         @relation(fields: [corporateCorporateId], references: [corporateId])
+  corporate            Corporate         @relation(fields: [corporateCorporateId], references: [corporateId],onDelete: Cascade)
   corporateCorporateId String
   timelines            Timeline[]
 }
@@ -130,7 +130,7 @@ model Product {
   product_type    ProductTypes    @default(business_loan)
   product_status  Status          @default(active)
   is_live         Boolean         @default(false)
-  payout          Decimal
+  payout          Decimal                         
   applications    Application[]
   corporate       Corporate       @relation(fields: [corporateUserId], references: [corporateId])
   corporateUserId String

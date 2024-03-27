@@ -3,7 +3,11 @@ import { createNewProduct, getProductById } from '../../../../../db.js';
 
 export async function POST({ request }) {
 
-    const { product_name, product_link, logo, payout, imported_payout, employee_payout, product_owner_uid } = await request.json();
+    const { 
+        product_name,
+        product_link,
+        payout,
+        corporateUserId } = await request.json();
 
     if (!product_name) {
         return new json({ error: "product_name is required" });
@@ -17,11 +21,14 @@ export async function POST({ request }) {
     if (!payout) {
         return new json({ error: "payout is required" });
     }
-    if (!product_owner_uid) {
-        return new json({ error: "product_owner_uid is required" });
-    }
+ 
 
-    const product = await createNewProduct({ product_name, product_link, logo, payout, imported_payout, employee_payout, product_owner_uid });
+    const product = await createNewProduct({
+        product_name,
+        product_link,
+        payout,
+        corporateUserId
+    });
 
     return new json(product);
 
